@@ -1,0 +1,33 @@
+- config:
+    name: 预检分诊工作站-历史记录查询
+    variables: {}
+    base_url: ${ENV(host)}
+
+
+- test:
+    name: 历史记录查询
+    request:
+      url: /triage/historyrecord/querypatienthistory
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triage_cookies()}
+      data:
+        rows: 13
+        page: 1
+        sort: gradename
+        sortOrder: asc
+        starttime: 2020-08-15
+        endtime: 2020-09-15
+        content: 钟建华
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - eq: [content.total, 1]
+
+
+
+
+

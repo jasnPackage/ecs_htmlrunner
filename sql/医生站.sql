@@ -1,0 +1,17 @@
+delete from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青');
+delete from trt_patient_common  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青');
+delete from trt_patient_handle  where p_id in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from trt_patient_record  where pid in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from trt_patient_score  where p_id in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from trt_patient_sign  where p_id in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from trt_patient_symptom  where patient_id in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from trt_special_patient  where cardnum in ('698515201409045288','698515201409065888','698515201409041200','698515201409065889','698515201409041111','698515201409042222','698515201409045241','698515201409066985');
+delete from trt_calling_patient  where patient_id in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from trt_patient_case_history  where p_id in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from trt_patient_doctor_info  where p_id in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from obs_patient_info where pid in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from obs_health_education where pid in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from obs_falling_score_record where pid in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from obs_braden_score_record where pid in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from obs_assessment_measure_record where pid in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));
+delete from stt_departbed_history where patient_id in (select id from trt_patient  where fullname in ('刘星','夏雪','夏雨','刘梅','陈蔚来','高原','李颖','毛青'));

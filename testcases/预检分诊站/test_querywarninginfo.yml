@@ -1,0 +1,24 @@
+- config:
+    name: 预检分诊工作站-查询告警信息
+    variables: {}
+    base_url: ${ENV(host)}
+
+
+- test:
+    name: 查询告警信息成功
+    request:
+      url: /triage/index/queryWarningInfo
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triage_cookies()}
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+
+
+
+

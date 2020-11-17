@@ -1,0 +1,22 @@
+name: 添加突发公共卫生事件
+base_url: ${ENV(host)}
+request:
+  url: /triage/events/save
+  method: POST
+  headers:
+    Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+    Cookie: ${triage_cookies()}
+  data:
+    nurseid: 2000008
+    nursename: 王旭东
+    name: 登革热确诊病例
+    paitents: 2020091604;郑连;男;1989-06-01;昏迷;74;85;58;60;1003;0;0;0;0;0;0;0;7;120;轮椅;39.6;;0;0;2;0;2020-09-16+15:08;+;31岁+;
+    num: 1
+    symtpomids: 13594309907
+    mews_idss: 0
+    edts_idss: 0
+
+validate:
+  - eq: [content.message, 保存成功]
+  - eq: [content.status, 200]

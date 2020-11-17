@@ -1,0 +1,65 @@
+- config:
+    name: 预检分诊工作站-用户登录
+    variables: {}
+    base_url: ${ENV(host)}
+
+- test:
+    name: 用户名密码正确，登录成功
+    request:
+      url: /sso/userPassword
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+      data:
+        user: ${ENV(user)}
+        password: ${ENV(passwd)}
+        mac:
+    validate:
+      - eq: [content.login, success]
+
+- test:
+    name: 密码输入错误，登录失败
+    request:
+      url: /sso/userPassword
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+      data:
+        user: ${ENV(user)}
+        password: 111
+        mac:
+    validate:
+      - eq: [content.login, fail]
+
+- test:
+    name: 密码输入为空，登录失败
+    request:
+      url: /sso/userPassword
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+      data:
+        user: ${ENV(user)}
+        password:
+        mac:
+    validate:
+      - eq: [content.login, fail]
+
+
+- test:
+    name: 请求参数不带mac地址，登录成功
+    request:
+      url: /sso/userPassword
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+      data:
+        user: ${ENV(user)}
+        password: ${ENV(passwd)}
+        mac:
+    validate:
+      - eq: [content.login, success]

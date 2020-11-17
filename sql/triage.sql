@@ -1,0 +1,1 @@
+update stt_user set password='111111' where loginname = 'jizhen1';

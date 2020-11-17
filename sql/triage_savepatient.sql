@@ -1,0 +1,1 @@
+delete from trt_patient  where fullname = '刘梅';

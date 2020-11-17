@@ -1,0 +1,341 @@
+- config:
+    name: 医生工作站-门诊患者
+    variables: {}
+    base_url: ${ENV(host)}
+    teardown_hooks:
+      - ${hook_sql(医生站.sql)}
+
+- test:
+    name: 初始化数据（新增三级患者）
+    api: api/add_patient.yml
+    variables:
+      fullname: 刘星
+      age: 29岁
+      bornday: 1991-06-01
+      cardnum: 698515201409045288
+      gender: 男
+      idcard: 350814199106018560
+      sg: 178
+      tel: 13525216300
+      tz: 68
+    extract:
+      - get_id: content.rows.id
+
+- test:
+    name: 医生站-查询客户端IP
+    request:
+      url: /triagedoctor/index/getIp
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+    validate:
+      - eq: [content.message, 操作成功！]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+    extract:
+      - get_ip: content.rows
+
+- test:
+    name: 医生站-门诊患者-查询门诊患者页面待诊患者
+    request:
+      url: /triagedoctor/index/seachUnReceivePatientDortorStation
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        rows: 11
+        page: 1
+        screenParam:
+        grade:
+        userid: 2000008
+        ipAddress: $get_ip
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+    extract:
+      - get_ip: content.rows
+
+
+- test:
+    name: 医生站-门诊患者-叫号
+    request:
+      url: /triagedoctor/index/calling
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        doctor_id: 2000008
+        patient_id: $get_id
+        'no': 12号
+        patient_name: 刘星
+        room_name: 四诊室
+    validate:
+      - eq: [content.message, 叫号成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+- test:
+    name: 医生站-门诊患者-接诊患者
+    request:
+      url: /triagedoctor/index/admissions
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        userid: 2000008
+        userName: 王旭东
+        departId: 3
+        depart: 急诊神经内科
+        patient_id: $get_id
+        cardNum: 698515201409045288
+        hand_id: 758618679297441792
+        receiveTime: ${get_currenttime()}
+        sex: 男
+        age: 29岁
+        idnum: 350814199106018560
+        tel: 13525216300
+        fullname: 刘星
+    validate:
+      - eq: [content.message, 接诊成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - str_eq: [content.rows.saveResult, 1]
+
+
+- test:
+    name: 医生站-门诊患者-保存急诊病历
+    request:
+      url: /triagedoctor/index/saveCaseHistory
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        patientid: $get_id
+        main_action: 发烧3天，高烧不退
+        present_illness:
+        anamnesis: 否认高血压，糖尿病，心脏病史，否认肝炎，结核，疟疾，泌尿生殖道传播的疾病。
+        allergic_history:
+        tw:
+        mb:
+        hx:
+        ssy:
+        szy:
+        health_checkup:
+        accessory_examination: 谷丙转氨酶：43.00U/L，CT平扫（颅脑）影像所见，右侧颞极前见一囊状低密度影，边界清晰，密度均匀，CT值约9HU，双侧大脑半球对称，灰白质对比正常，未见局灶性密度异常，各脑室、脑池大小形态正常。中线结构局中。幕下小脑、脑干无异常。颅骨未见异常征象。 提示:考虑右侧颞极蛛网膜囊肿。
+        diagnosis:
+        therapies: 多休息，头孢注射2支
+        section_office_id: 3
+        section_office: 急诊神经内科
+        doctor_id: 2000008
+        doctor: 王旭东
+        cardnum: 698515201409045288
+        type: 1
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+
+
+- test:
+    name: 医生站-门诊患者-查询急诊病历
+    request:
+      url: /triagedoctor/index/queryCaseHistory
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        patientid: $get_id
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+
+- test:
+    name: 医生站-门诊患者-更新患者信息
+    request:
+      url: /triagedoctor/index/udpatePaientInfo
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        pid: $get_id
+        teshu: -1
+        address: 江苏省南京市江宁区双龙大道1088号明月新寓花园
+        memberstel: 夏东海
+        parenttel: 15721028988
+        sg: 178
+        tz: 68
+        allergic_history: 青霉素G，青霉素V，阿莫西林
+        cardnum: 698515201409045288
+        cixu: 1
+    validate:
+      - eq: [content.message, 修改基础信息成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - eq: [content.rows.fullname, 刘星]
+
+
+- test:
+    name: 医生站-门诊患者-医生站新增待接诊患者
+    request:
+      url: /triagedoctor/index/admissions
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        userid: 2000008
+        userName: 王旭东
+        departId: 3
+        depart: 急诊神经内科
+        patient_id:
+        cardNum: 698515201409045241
+        receiveTime: ${get_currenttime()}
+        sex: 男
+        age: 18岁
+        idnum: 350814199106018560
+        tel: 13525216365
+        fullname: 李颖
+    validate:
+      - eq: [content.message, 新增患者接诊成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+
+- test:
+    name: 医生站-门诊患者-门诊患者查询
+    request:
+      url: /triagedoctor/index/seachReceivePatientBySelf
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        rows: 11
+        page: 1
+        screenParam: 刘星
+        grade: 1003
+        userid: 2000008
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - str_eq: [content.total, 1]
+      - eq: [content.rows.0.fullname, 刘星]
+
+
+- test:
+    name: 医生站-医生站修改密码
+    request:
+      url: /triagedoctor/index/upduserselfconfirm
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        userid: 2000008
+        yuanpassword: 111111
+        newpassword: 222222
+        confirmpassword: 222222
+    validate:
+      - eq: [content.message, 修改成功！！]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+- test:
+    name: 医生站-医生站修改密码
+    request:
+      url: /triagedoctor/index/upduserselfconfirm
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        userid: 2000008
+        yuanpassword: 222222
+        newpassword: 111111
+        confirmpassword: 111111
+    validate:
+      - eq: [content.message, 修改成功！！]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+- test:
+    name: 医生站-切换诊室或者接诊范围
+    request:
+      url: /triagedoctor/index/updRoom
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        create_user: $get_ip
+        room_id: 1004
+        depart_id: 3,4,5,6,7,8,9,10,39,1003,1012,1013,1014
+        depart_name: 急诊神经内科,急诊妇科,急诊产科,急诊皮肤科,急诊耳鼻喉科,急诊眼科,急诊口腔科,急诊精神科,急诊内科,急诊内科呼吸科,神经外科,骨科,内科
+    validate:
+      - eq: [content.message, 操作成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+- test:
+    name: 医生站-门诊患者-患者去向查询
+    request:
+      url: /triagedoctor/index/queryAlldirectionForPatient
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        m_id: 3
+        typedescr: 去向
+        patientid: $get_id
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - eq: [content.rows.dir.fullname, 刘星]
+      - eq: [content.rows.dirList.1.name, 留观]
+
+- test:
+    name: 医生站-门诊患者-患者去向选择抢救
+    request:
+      url: /triagedoctor/index/savePatientLeaveDirectionDoctor
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        leavedirection: '{"dre":"抢救","dremsg":""}'
+        leaveTime: ${get_currenttime()}
+        patientid: $get_id
+        userId: 2000008
+    validate:
+      - eq: [content.message, 操作成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - str_eq: [content.rows, 1]

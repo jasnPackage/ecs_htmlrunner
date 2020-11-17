@@ -1,0 +1,20 @@
+- config:
+    name: 预检分诊工作站-突发公共卫生事件
+    variables: {}
+    base_url: ${ENV(host)}
+
+
+- test:
+    name: 添加突发公共卫生事件
+    teardown_hooks:
+      - ${hook_sql(triage_events.sql)}
+    api: api/save_events.yml
+    validate:
+      - eq: [content.message, 保存成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+
+
+
+

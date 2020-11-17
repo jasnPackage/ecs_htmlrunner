@@ -1,0 +1,36 @@
+- config:
+    name: 预检分诊工作站-接诊患者
+    variables: {}
+    base_url: ${ENV(host)}
+
+- test:
+    name: 初始化数据-新增一级患者
+    api: api/save_patient.yml
+    extract:
+      - get_id: content.rows.id
+
+- test:
+    name: 接诊患者
+    teardown_hooks:
+      - ${hook_sql(triage_savespecial.sql)}
+    request:
+      url: /triage/index/receivePatient
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triage_cookies()}
+      data:
+        id: $get_id
+        jiezhentime: ${get_currenttime()}
+        hisid:
+        nurseid: 10062
+        cardnum: 698515201409041111
+    validate:
+      - eq: [content.message, 修改成功！]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+
+
+

@@ -1,0 +1,319 @@
+- config:
+    name: 医生工作站-抢救患者
+    variables: {}
+    base_url: ${ENV(host)}
+    teardown_hooks:
+      - ${hook_sql(医生站.sql)}
+
+- test:
+    name: 初始化数据（新增三级患者）
+    api: api/add_patient.yml
+    variables:
+      fullname: 夏雪
+      age: 27岁
+      bornday: 1993-06-06
+      cardnum: 698515201409065888
+      gender: 女
+      idcard: 350814199306068560
+      sg: 170
+      tel: 13525215801
+      tz: 55
+    extract:
+      - get_id: content.rows.id
+
+- test:
+    name: 初始化数据（医生站-门诊患者-接诊患者）
+    request:
+      url: /triagedoctor/index/admissions
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        userid: 2000008
+        userName: 王旭东
+        departId: 3
+        depart: 急诊神经内科
+        patient_id: $get_id
+        cardNum: 698515201409065888
+        hand_id: 758618679297441792
+        receiveTime: ${get_currenttime()}
+        sex: 女
+        age: 27岁
+        idnum: 350814199306068560
+        tel: 13525215801
+        fullname: 夏雪
+    validate:
+      - eq: [content.message, 接诊成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - str_eq: [content.rows.saveResult, 1]
+
+- test:
+    name: 初始化数据（医生站-门诊患者-患者去向选择抢救）
+    request:
+      url: /triagedoctor/index/savePatientLeaveDirectionDoctor
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        leavedirection: '{"dre":"抢救","dremsg":""}'
+        leaveTime: ${get_currenttime()}
+        patientid: $get_id
+        userId: 2000008
+    validate:
+      - eq: [content.message, 操作成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - str_eq: [content.rows, 1]
+
+- test:
+    name: 初始化数据（抢救工作站-查询抢救室床位信息）
+    request:
+      url: /triagerescue/index/seachBedInfo
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagerescue_cookies()}
+      data:
+        department: 抢救室1
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+- test:
+    name: 初始化数据（抢救工作站-查询抢救工作站Ward）
+    request:
+      url: /triagerescue/index/getWard
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagerescue_cookies()}
+      data:
+        user_id: 2000008
+    validate:
+      - eq: [content.message, 获取成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - eq: [content.rows.name, 抢救室1]
+    extract:
+      - get_wardid: content.rows.id
+
+- test:
+    name: 初始化数据（抢救工作站-患者接诊分床）
+    request:
+      url: /triagerescue/index/setBed
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagerescue_cookies()}
+      data:
+        bed_id: ${get_rescue_bedid()}
+        pid: $get_id
+        ward_id: $get_wardid
+        nurseid: 2000008
+    validate:
+      - eq: [content.message, 操作成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - eq: [content.rows.fullname, 夏雪]
+
+- test:
+    name: 测试医生工作站-抢救患者-查询患者
+    request:
+      url: /triagedoctor/rescue/queryRescueInfo
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        rows: 11
+        page: 1
+        cardnumText: 夏雪
+        grade:
+        doctor:
+        ward:
+        isOnBed:
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - str_eq: [content.total, 1]
+      - eq: [content.rows.0.fullname, 夏雪]
+
+
+- test:
+    name: 测试医生工作站-抢救患者-查看患者信息
+    request:
+      url: /triagedoctor/rescue/getRescuePatientInfo
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        patientId: $get_id
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - eq: [content.rows.fullname, 夏雪]
+
+
+- test:
+    name: 测试医生工作站-抢救患者-更新患者信息(标记了特殊和修改了身高体重)
+    request:
+      url: /triagedoctor/rescue/udpatePaientInfoForRescue
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        nurse1:
+        doctor:
+        pid: $get_id
+        teshu: 595271300872667136,
+        address: 江苏省南京市江宁区双龙大道1088号明月新寓花园
+        memberstel: 夏东海
+        parenttel: 15721028988
+        sg: 171
+        tz: 54
+        allergic_history: 不详
+        cardnum: 698515201409065888
+        main_action:
+        diagnosis:
+        cixu: 11
+    validate:
+      - eq: [content.message, 获取成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+- test:
+    name: 测试医生工作站-抢救患者-保存抢救记录
+    request:
+      url: /triagedoctor/rescue/saveRescueRecord
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        patientid: $get_id
+        record_time: ${get_currenttime()}
+        present_illness: '主诉：腹痛腹胀伴肛门排气排便减少一天
+          现病史：1天前，患者无明显诱因下出现上腹部胀痛不适，呈持续性钝痛，阵发性加剧，有腹胀，伴恶心，呕吐数次，呕吐物为胃内容物，含胆汁，不含鲜血，非喷射状，呕吐后腹痛腹胀有缓解。'
+        tel: 13525215801
+        address: 江苏省南京市江宁区双龙大道1088号明月新寓花园
+        hx: 126
+        tw: 36.5
+        mb: 21
+        ssy: 142
+        szy: 84
+        ssy_r:
+        szy_r:
+        right_pupil: 3
+        left_pupil: 3
+        reflect: 正常
+        consciousness: 清楚
+        rescue_process: 15:03<br>清除气道异物，保持气道通畅，大管径管吸痰<br>15:15<br>一般神经功能评估;神经系统检查：确定昏迷程度确定卒中严重程度;
+        diagnosis: '-'
+        doctor1: 田丹
+        doctor1_id: 田丹
+        lapse: 抢救
+        is_xy_check: 0
+        is_save: 1
+        u_die_reason:
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+
+- test:
+    name: 测试医生工作站-抢救患者-查询抢救记录
+    request:
+      url: /triagedoctor/rescue/queryPatientResuceRecord
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        patientid: $get_id
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - eq: [content.rows.fullname, 夏雪]
+
+- test:
+    name: 测试医生工作站-抢救患者-保存诊断证明
+    request:
+      url: /triagedoctor/index/saveAegerRecord1
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        p_id: $get_id
+        user_id: 2000008
+        content: '%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cbr%3E%3C%2Fp%3E%3Cp+style%3D%22margin-top%3A+5px%3B+margin-left%3A+0px%3B+text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E9%BB%91%E4%BD%93%2C+SimHei%3B+font-size%3A+28px%3B%22%3E%3Cspan+class%3D%22sde-ctrl+sde-label%22+id%3D%22hospitalname%22+sde-type%3D%22label%22+title%3D%22%22+sde-isloadasyncdata%3D%22false%22+contenteditable%3D%22false%22%3E%E8%9A%8C%E5%9F%A0%E5%8C%BB%E5%AD%A6%E9%99%A2%E5%8C%BB%E7%A7%91%E5%A4%A7%E5%AD%A6%E9%99%84%E5%B1%9E%E5%8C%BB%E9%99%A2%3C%2Fspan%3E%3C%2Fspan%3E%3Cbr%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B+margin-top%3A+5px%3B+margin-left%3A+0px%3B%22%3E%3Cspan+style%3D%22font-size%3A+41px%3B%22%3E%3Cstrong%3E%3Cspan+style%3D%22font-family%3A+%E5%AE%8B%E4%BD%93%2C+SimSun%3B%22%3E%E7%96%BE%E7%97%85%E8%AF%8A%E6%96%AD%E8%AF%81%E6%98%8E%E4%B9%A6%3C%2Fspan%3E%3C%2Fstrong%3E%3C%2Fspan%3E%3Cstrong%3E%3Cspan+style%3D%22font-size%3A+30px%3B+font-family%3A+%E5%AE%8B%E4%BD%93%2C+SimSun%3B%22%3E%26nbsp%3B%3C%2Fspan%3E%3C%2Fstrong%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%26nbsp%3B%26nbsp%3B%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+justify%3B%22%3E%3Cspan+style%3D%22text-align%3A+center%3B%22%3E%3Cbr%3E%E5%A7%93%E5%90%8D%EF%BC%9A%3Cspan+class%3D%22sde-ctrl%22+id%3D%22PATName%22+sde-type%3D%22text%22+sde-model%3D%22%257B%2522desc%2522%253A%2522%2522%252C%2522required%2522%253A0%252C%2522strictverify%2522%253A0%252C%2522notdel%2522%253A0%252C%2522verify%2522%253A%2522%2522%252C%2522mode%2522%253A%2522EDITOR%2522%257D%22+sde-isloadasyncdata%3D%22false%22+_sde-right%3D%22.%22+_sde-left%3D%22%22+contenteditable%3D%22false%22%3E%3Cspan+class%3D%22sde-value%22+_sde-right%3D%22%5D%22+_sde-left%3D%22%5B%22+contenteditable%3D%22true%22%3E%E5%A4%8F%E9%9B%AA%3C%2Fspan%3E%3C%2Fspan%3E%26nbsp%3B%26nbsp%3B+%E6%80%A7%E5%88%AB%26nbsp%3B%3A%26nbsp%3B+%3Cspan+class%3D%22sde-ctrl%22+id%3D%22PATSex%22+sde-type%3D%22text%22+sde-model%3D%22%257B%2522desc%2522%253A%2522%2522%252C%2522required%2522%253A0%252C%2522strictverify%2522%253A0%252C%2522notdel%2522%253A0%252C%2522verify%2522%253A%2522%2522%252C%2522mode%2522%253A%2522EDITOR%2522%257D%22+sde-isloadasyncdata%3D%22false%22+_sde-right%3D%22.%22+_sde-left%3D%22%22+contenteditable%3D%22false%22%3E%3Cspan+class%3D%22sde-value%22+_sde-right%3D%22%5D%22+_sde-left%3D%22%5B%22+contenteditable%3D%22true%22%3E%E5%A5%B3%3C%2Fspan%3E%3C%2Fspan%3E%26nbsp%3B%26nbsp%3B%26nbsp%3B+%E5%B9%B4%E9%BE%84+%3A%3Cspan+class%3D%22sde-ctrl%22+id%3D%22PATAge%22+sde-type%3D%22text%22+sde-model%3D%22%257B%2522desc%2522%253A%2522%2522%252C%2522required%2522%253A0%252C%2522strictverify%2522%253A0%252C%2522notdel%2522%253A0%252C%2522verify%2522%253A%2522%2522%252C%2522mode%2522%253A%2522EDITOR%2522%257D%22+sde-isloadasyncdata%3D%22false%22+_sde-right%3D%22.%22+_sde-left%3D%22%22+contenteditable%3D%22false%22%3E%3Cspan+class%3D%22sde-value%22+_sde-right%3D%22%5D%22+_sde-left%3D%22%5B%22+contenteditable%3D%22true%22%3E27%E5%B2%81%3C%2Fspan%3E%3C%2Fspan%3E%26nbsp%3B+%26nbsp%3B+%E5%B0%B1%E8%AF%8A%E5%8D%A1%E5%8F%B7%EF%BC%9A%3Cspan+class%3D%22sde-ctrl%22+id%3D%22cardnum%22+sde-type%3D%22text%22+sde-model%3D%22%257B%2522desc%2522%253A%2522%2522%252C%2522required%2522%253A0%252C%2522strictverify%2522%253A0%252C%2522notdel%2522%253A0%252C%2522verify%2522%253A%2522%2522%252C%2522mode%2522%253A%2522EDITOR%2522%257D%22+sde-isloadasyncdata%3D%22false%22+_sde-right%3D%22.%22+_sde-left%3D%22%22+contenteditable%3D%22false%22%3E%3Cspan+class%3D%22sde-value%22+_sde-right%3D%22%5D%22+_sde-left%3D%22%5B%22+contenteditable%3D%22true%22%3E698515201409065888%3C%2Fspan%3E%3C%2Fspan%3E%3C%2Fspan%3E%3C%2Fp%3E%3Ctable+class%3D%22sde-table%22%3E%3Ctbody%3E%3Ctr+class%3D%22firstRow%22%3E%3C%2Ftr%3E%3C%2Ftbody%3E%3C%2Ftable%3E%3Cp+style%3D%22margin-top%3A+5px%3B+margin-left%3A+0px%3B+text-align%3A+justify%3B%22%3E%3Cbr%3E%E5%8D%95%E4%BD%8D%2F%E5%9C%B0%E5%9D%80%EF%BC%9A%3Cspan+class%3D%22sde-ctrl%22+id%3D%22PADAddress%22+sde-type%3D%22text%22+sde-model%3D%22%257B%2522desc%2522%253A%2522%25E5%259C%25B0%25E5%259D%2580%2522%252C%2522required%2522%253A0%252C%2522strictverify%2522%253A0%252C%2522notdel%2522%253A0%252C%2522verify%2522%253A%2522%2522%252C%2522mode%2522%253A%2522EDITOR%2522%257D%22+sde-isloadasyncdata%3D%22false%22+_sde-right%3D%22.%22+_sde-left%3D%22%22+contenteditable%3D%22false%22%3E%3Cspan+class%3D%22sde-value%22+title%3D%22%E5%9C%B0%E5%9D%80%22+_sde-right%3D%22%5D%22+_sde-left%3D%22%5B%22+contenteditable%3D%22true%22%3E%E8%B4%B5%E5%B7%9E%E7%9C%81%E6%AC%A3%E5%8E%BF%E9%AB%98%E5%9D%AA%E7%94%B0%E8%A1%97q%E5%BA%A7+605173%3C%2Fspan%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22margin-top%3A+5px%3B+margin-left%3A+0px%3B+text-align%3A+justify%3B%22%3E%3Cbr%3E%3C%2Fp%3E%3Cp+style%3D%22margin-top%3A+5px%3B+margin-left%3A+0px%3B+text-align%3A+justify%3B%22%3E%26nbsp%3B+%E7%97%85%E6%83%85%E6%91%98%E8%A6%81%EF%BC%9A%3Cspan+class%3D%22sde-ctrl%22+id%3D%22bqzy%22+sde-type%3D%22text%22+sde-model%3D%22%257B%2522desc%2522%253A%2522%2526nbsp%253B%2526nbsp%253B%2526nbsp%253B%2522%252C%2522required%2522%253A0%252C%2522strictverify%2522%253A0%252C%2522notdel%2522%253A0%252C%2522verify%2522%253A%2522%2522%252C%2522mode%2522%253A%2522EDITOR%2522%257D%22+_sde-right%3D%22.%22+_sde-left%3D%22%22+sde-isloadasyncdata%3D%22false%22+contenteditable%3D%22false%22%3E%3Cspan+class%3D%22sde-value%22+title%3D%22%26amp%3Bnbsp%3B%26amp%3Bnbsp%3B%26amp%3Bnbsp%3B%22+_sde-right%3D%22%5D%22+_sde-left%3D%22%5B%22+contenteditable%3D%22true%22+_backups%3D%22%E6%82%A3%E8%80%85%E5%85%A8%E8%BA%AB%E5%87%BA%E7%8E%B0%E7%98%99%E7%97%92%EF%BC%8C%E7%BA%A2%E8%89%B2bankuai%26amp%3Bnbsp%3B%26amp%3Bnbsp%3B%22%3E%E6%82%A3%E8%80%85%E5%85%A8%E8%BA%AB%E5%87%BA%E7%8E%B0%E7%98%99%E7%97%92%EF%BC%8C%E7%BA%A2%E8%89%B2%E6%96%91%E5%9D%97%26nbsp%3B%26nbsp%3B%3C%2Fspan%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22margin-top%3A+5px%3B+margin-left%3A+0px%3B+text-align%3A+justify%3B%22%3E%3Cbr%3E%3C%2Fp%3E%3Cp+style%3D%22margin-top%3A+5px%3B+margin-left%3A+0px%3B+text-align%3A+justify%3B%22%3E%26nbsp%3B%26nbsp%3B%26nbsp%3B%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%26nbsp%3B+%26nbsp%3B%3C%2Fspan%3E%E8%AF%8A%E6%96%AD%EF%BC%9A%3Cspan+class%3D%22sde-ctrl%22+id%3D%22PADDiag%22+sde-type%3D%22text%22+sde-model%3D%22%257B%2522desc%2522%253A%2522%2522%252C%2522required%2522%253A0%252C%2522strictverify%2522%253A0%252C%2522notdel%2522%253A0%252C%2522verify%2522%253A%2522%2522%252C%2522mode%2522%253A%2522EDITOR%2522%257D%22+sde-isloadasyncdata%3D%22false%22+_sde-right%3D%22.%22+_sde-left%3D%22%22+contenteditable%3D%22false%22%3E%3Cspan+class%3D%22sde-value%22+title%3D%22%E8%AF%8A%E6%96%AD%22+_backups%3D%22%22+_sde-right%3D%22%5D%22+_sde-left%3D%22%5B%22+contenteditable%3D%22true%22%3E-%3C%2Fspan%3E%3C%2Fspan%3E%3Cbr%3E%3C%2Fp%3E%3Cp+style%3D%22margin-top%3A+5px%3B+margin-left%3A+0px%3B+text-align%3A+justify%3B%22%3E%3Cbr%3E%3C%2Fp%3E%3Cp+style%3D%22margin-top%3A+5px%3B+margin-left%3A+0px%3B+text-align%3A+justify%3B%22%3E%26nbsp%3B+%26nbsp%3B+%26nbsp%3B+%26nbsp%3B+%E5%BB%BA%E8%AE%AE%EF%BC%9A%3Cspan+class%3D%22sde-ctrl%22+id%3D%22suggest%22+sde-type%3D%22text%22+sde-model%3D%22%257B%2522desc%2522%253A%2522%2522%252C%2522required%2522%253A0%252C%2522strictverify%2522%253A0%252C%2522notdel%2522%253A0%252C%2522verify%2522%253A%2522%2522%252C%2522mode%2522%253A%2522EDITOR%2522%257D%22+sde-isloadasyncdata%3D%22false%22+_sde-right%3D%22.%22+_sde-left%3D%22%22+contenteditable%3D%22false%22%3E%3Cspan+class%3D%22sde-value%22+title%3D%22%E5%BB%BA%E8%AE%AE%22+_backups%3D%22%E8%85%B9%E9%83%A8%E5%BD%A9%E8%B6%85jiancha%22+_sde-right%3D%22%5D%22+_sde-left%3D%22%5B%22+contenteditable%3D%22true%22%3E%E8%85%B9%E9%83%A8%E5%BD%A9%E8%B6%85%E6%A3%80%E6%9F%A5%3C%2Fspan%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22margin-left%3A+-32px%3B+text-align%3A+justify%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3Cbr%3E%3C%2Fspan%3E%3C%2Fp%3E%3Cp+style%3D%22text-align%3A+center%3B%22%3E%3Cspan+style%3D%22font-family%3A+%E6%A5%B7%E4%BD%93%2C+%E6%A5%B7%E4%BD%93_GB2312%2C+SimKai%3B%22%3E%3C%2Fspan%3E%3C%2Fp%3E%E6%97%A5%E6%9C%9F%EF%BC%9A%3Cspan+class%3D%22sde-ctrl%22+id%3D%22date%22+sde-type%3D%22date%22+sde-model%3D%22%257B%2522desc%2522%253A%2522%2522%252C%2522required%2522%253A0%252C%2522strictverify%2522%253A0%252C%2522notdel%2522%253A0%252C%2522mode%2522%253A%2522EDITOR%2522%252C%2522min%2522%253A%2522%2522%252C%2522max%2522%253A%2522%2522%252C%2522format%2522%253A%2522%257Byyyy%257D-%257BMM%257D-%257Bdd%257D%2522%252C%2522defvalue%2522%253A%2522%2522%257D%22+sde-isloadasyncdata%3D%22false%22+_sde-right%3D%22.%22+_sde-left%3D%22%22+contenteditable%3D%22false%22%3E%3Cspan+class%3D%22sde-value%22+_sde-right%3D%22%5D%22+_sde-left%3D%22%5B%22+contenteditable%3D%22true%22%3E2020-10-10%3C%2Fspan%3E%3C%2Fspan%3E%26nbsp%3B+%26nbsp%3B+%26nbsp%3B+%26nbsp%3B+%26nbsp%3B%26nbsp%3B+%E7%A7%91%E5%88%AB%EF%BC%9A%3Cspan+class%3D%22sde-ctrl%22+id%3D%22DeptName%22+sde-type%3D%22text%22+sde-model%3D%22%257B%2522desc%2522%253A%2522%25E7%259A%25AE%25E8%2582%25A4%25E7%25A7%2591%2522%252C%2522required%2522%253A0%252C%2522strictverify%2522%253A0%252C%2522notdel%2522%253A0%252C%2522verify%2522%253A%2522%2522%252C%2522mode%2522%253A%2522EDITOR%2522%257D%22+sde-isloadasyncdata%3D%22false%22+_sde-right%3D%22.%22+_sde-left%3D%22%22+contenteditable%3D%22false%22%3E%3Cspan+class%3D%22sde-value%22+title%3D%22%E7%9A%AE%E8%82%A4%E7%A7%91%22+_sde-right%3D%22%5D%22+_sde-left%3D%22%5B%22+contenteditable%3D%22true%22%3E%E6%80%A5%E8%AF%8A%E5%86%85%E7%A7%91%3C%2Fspan%3E%3C%2Fspan%3E%26nbsp%3B+%26nbsp%3B+%26nbsp%3B+%26nbsp%3B+%26nbsp%3B%26nbsp%3B+%E5%8C%BB%E5%B8%88%EF%BC%9A%3Cspan+class%3D%22sde-ctrl%22+id%3D%22DOCname%22+sde-type%3D%22select%22+sde-model%3D%22%257B%2522desc%2522%253A%2522%2520%2520%2520%2522%252C%2522required%2522%253A0%252C%2522multi%2522%253A0%252C%2522notdel%2522%253A0%252C%2522mode%2522%253A%2522EDITOR%2522%252C%2522bindingdata%2522%253A%255B%255D%252C%2522remotedata%2522%253Anull%257D%22+sde-isloadasyncdata%3D%22true%22+bindingdata%3D%22%5B%7B%26quot%3Bvalue%26quot%3B%3A10046%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E9%BB%84%E6%AC%A2%E6%AC%A2%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10047%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E4%BD%99%E6%99%93%E8%8B%B1%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10053%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E5%86%AF%E5%BD%A9%E8%8A%B3%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10061%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E8%83%A1%E6%95%8F%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10062%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E9%AB%98%E5%8D%9A%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10065%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E4%BA%8E%E4%B8%96%E6%98%8E%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10066%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E6%9D%8E%E9%9B%85%E8%8F%B2%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10069%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E9%AB%98%E4%B8%89%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10078%2C%26quot%3Blabel%26quot%3B%3A%26quot%3Bjxy4%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10080%2C%26quot%3Blabel%26quot%3B%3A%26quot%3Bjxy6%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10081%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E4%B8%87%E5%8C%BB%E7%94%9F%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10085%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E5%BC%A0%E6%97%A0%E5%BF%8C%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10086%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E5%88%98%E6%99%93%E4%BF%8A%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10092%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E9%82%B1%E8%90%8D%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A10109%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E7%8E%8B%E8%BD%B6%E9%94%8B%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A2000003%2C%26quot%3Blabel%26quot%3B%3A%26quot%3Bgaobo%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A2000004%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E6%BB%8B%E6%BB%8B%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A2000005%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E9%BB%84%E4%BA%9A%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A2000008%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E7%8E%8B%E6%97%AD%E4%B8%9C%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A2000009%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E6%80%A5%E8%AF%8A%E4%BA%8C%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A2000010%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E4%B8%BB%E4%BB%BB%E4%B8%80%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A2000012%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E6%80%A5%E8%AF%8A%E4%B8%89%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A2000014%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E9%BC%93%E6%A5%BC%E5%8C%BB%E9%99%A2%E5%8C%BB%E7%94%9F%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A2000015%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E6%B1%9F%E8%8B%8F%E4%BA%BA%E6%B0%91%E5%8C%BB%E9%99%A2%26quot%3B%7D%2C%7B%26quot%3Bvalue%26quot%3B%3A2000016%2C%26quot%3Blabel%26quot%3B%3A%26quot%3B%E6%80%A5%E8%AF%8A2%26quot%3B%7D%5D%22+sde-updatetime%3D%222020-10-10T07%3A49%3A08.721Z%22+_sde-right%3D%22.%22+_sde-left%3D%22%22+contenteditable%3D%22false%22+sde-value%3D%22%5B%7B%26quot%3Blabel%26quot%3B%3A%26quot%3B%E7%8E%8B%E6%97%AD%E4%B8%9C%26quot%3B%2C%26quot%3Bselected%26quot%3B%3A0%2C%26quot%3Bvalue%26quot%3B%3A%26quot%3B%E7%8E%8B%E6%97%AD%E4%B8%9C%26quot%3B%7D%5D%22%3E%3Cspan+class%3D%22sde-value+sde-select%22+title%3D%22+++%22+_sde-right%3D%22%5D%22+_sde-left%3D%22%5B%22+contenteditable%3D%22true%22%3E%E7%8E%8B%E6%97%AD%E4%B8%9C%3C%2Fspan%3E%3C%2Fspan%3E%3Cp+style%3D%22text-align%3A+left%3B%22%3E%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%E2%80%94%3Cbr%3E%3C%2Fp%3E'
+    validate:
+      - eq: [content.message, 保存成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - str_eq: [content.rows, 1]
+
+
+- test:
+    name: 测试医生工作站-抢救患者-选择患者去向
+    request:
+      url: /triagedoctor/rescue/savePatientLeaveDirectionDoctor
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        department: 抢救室1
+        patientid: $get_id
+        qxtime: ${get_currenttime()}
+        leavedirection: '{"dre":"留抢","dremsg":""}'
+        nurseid: 2000008
+    validate:
+      - eq: [content.message, 操作成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - str_eq: [content.rows, 1]
+
+
+- test:
+    name: 测试医生工作站-抢救患者-选择患者去向（离开抢救室）
+    request:
+      url: /triagedoctor/rescue/savePatientLeaveDirectionAndLeaveTimeDoctor
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triagedoctor_cookies()}
+      data:
+        department: 抢救室1
+        patientid: $get_id
+        qxtime: ${get_currenttime()}
+        leavedirection: '{"dre":"离开抢救室","dremsg":""}'
+        nurseid: 2000008
+    validate:
+      - eq: [content.message, 操作成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - str_eq: [content.rows, 1]

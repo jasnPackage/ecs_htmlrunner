@@ -1,0 +1,37 @@
+- config:
+    name: 预检分诊工作站-报特殊
+    variables: {}
+    base_url: ${ENV(host)}
+
+- test:
+    name: 初始化数据-添加突发公共卫生事件
+    api: api/save_patient.yml
+    extract:
+      - get_id: content.rows.id
+
+- test:
+    name: 查询突发公共卫生事件
+    teardown_hooks:
+      - ${hook_sql(triage_events.sql)}
+    request:
+      url: /triage/events/queryEvents
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triage_cookies()}
+      data:
+        rows: 10
+        page: 1
+        name: 登革热确诊病例
+        begin:
+        end:
+
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+
+
+
+

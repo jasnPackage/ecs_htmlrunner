@@ -1,0 +1,42 @@
+- config:
+    name: 预检分诊工作站-查询来院方式/来源
+    variables: {}
+    base_url: ${ENV(host)}
+
+
+- test:
+    name: 查询患者来院方式
+    request:
+      url: /triage/index/queryDataDictionary
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triage_cookies()}
+      data:
+        sort: 3
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - eq: [content.rows.0.name, 步行]
+
+- test:
+    name: 查询患者来源
+    request:
+      url: /triage/index/queryDataDictionary
+      method: POST
+      headers:
+        Content-Type: application/x-www-form-urlencoded
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+        Cookie: ${triage_cookies()}
+      data:
+        sort: 2
+    validate:
+      - eq: [content.message, 查询成功]
+      - eq: [content.status, 200]
+      - eq: [status_code, 200]
+      - eq: [content.rows.0.name, 自行来院]
+
+
+

@@ -1,0 +1,108 @@
+name: 新增一级患者
+base_url: ${ENV(host)}
+request:
+  url: /triage/divid/save
+  method: POST
+  headers:
+    Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+    User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0
+    Cookie: ${triage_cookies()}
+  data:
+    GCS_xq: 4,5,5
+    GreenChFlag: N
+    PAADMVisitNumber: ''
+    ThreeNoFlag: N
+    address: 江苏省南京市江宁区双龙大道1088号明月新寓花园
+    admission: 步行
+    afp: ''
+    age: 50岁
+    allergic_history: 不详
+    anamnesis: 无
+    autograde: '1001'
+    bornday: '1970-05-11'
+    ca: ''
+    card_type: '01'
+    cardnum: '698515201409041111'
+    category: '1'
+    cea: ''
+    changereason: 选择修改原因
+    cixu: '1'
+    ckmb: ''
+    consciousness: 模糊
+    crp: ''
+    ctnt: ''
+    ddimer: ''
+    deptment: '39'
+    deptmentname: 急诊内科
+    dividtime: 2020-10-22 16:55
+    edts_ids: ''
+    edts_ids_qita: ''
+    edts_ids_qitastatus: 'false'
+    edts_score: ''
+    events_id: ''
+    events_name: ''
+    fast_score: A
+    feijz: '1'
+    fer: ''
+    finalgrade: ''
+    fullname: 刘梅
+    gcs_score: '14'
+    gender: 女
+    go_rct: '0'
+    handleid: ''
+    hisid: ''
+    hljl: 已测体温超过38度，患者先要挂水退烧
+    hsctnl: ''
+    hx: ''
+    id: ''
+    idcard: '350814197005118560'
+    il6: ''
+    isFuzhen: N
+    isLiuguan: N
+    is_changegrade: '0'
+    maxcixu: '1'
+    mb: ''
+    memberstel: 夏东海
+    mews_ids: ''
+    mews_score: ''
+    myo: ''
+    ntprobnp: ''
+    nurse: 王旭东
+    nurseid: '2000008'
+    others: ''
+    pain_score: '2'
+    parenttel: '15721028988'
+    pcn: ''
+    reason: 发烧3天，高烧不退
+    reasondetail: '修改原因:'
+    registertime: ''
+    remark: "\t                                            "
+    savestatus: save
+    sg: '184'
+    sighid: ''
+    sign_grade: ''
+    signurl: ''
+    source: 自行来院
+    spo2: ''
+    ssy: ''
+    status: 未接诊
+    supplement: ''
+    symtpomid: '12562338488'
+    symtpomzdygrade: ''
+    symtpomzdyvalue: ''
+    szy: ''
+    tel: '13525215211'
+    tw: ''
+    tz: '78'
+    xgpj: ''
+
+validate:
+  - eq: [content.message, 保存成功]
+  - eq: [content.status, 200]
+  - eq: [content.rows.status, 未接诊]
+  - eq: [status_code, 200]
+  - str_eq: [content.rows.grade, 1001]
+  - eq: [content.rows.fullname, 刘梅]
+
+
+
