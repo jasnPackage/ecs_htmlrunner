@@ -1,0 +1,169 @@
+2020-11-11 11:40:29.819 | INFO     | httprunner.runner:test_start:451 - Start to run testcase: 预检分诊工作站-用户登录, TestCase ID: a1d0a206-fa3b-43b5-bee5-7d9c97b94190
+2020-11-11 11:40:29.825 | INFO     | httprunner.runner:__run_step:292 - run step begin: 用户名密码正确，登录成功 >>>>>>
+2020-11-11 11:40:29.858 | DEBUG    | httprunner.client:request:186 - client IP: 127.0.0.1, Port: 56440
+2020-11-11 11:40:29.862 | DEBUG    | httprunner.client:request:194 - server IP: 127.0.0.1, Port: 8889
+2020-11-11 11:40:29.877 | DEBUG    | httprunner.client:log_print:40 - 
+================== request details ==================
+method   : POST
+url      : http://192.168.1.15:8080/sso/userPassword
+headers  : {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0",
+    "Accept-Encoding": "gzip, deflate",
+    "Accept": "*/*",
+    "Connection": "keep-alive",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "HRUN-Request-ID": "HRUN-a1d0a206-fa3b-43b5-bee5-7d9c97b94190-029828",
+    "Content-Length": "28"
+}
+cookies  : {}
+body     : user=jizhen1&password=111111
+
+2020-11-11 11:40:29.880 | DEBUG    | httprunner.client:log_print:40 - 
+================== response details ==================
+status_code : 200
+headers  : {
+    "Server": "Apache-Coyote/1.1",
+    "Pragma": "no-cache",
+    "Cache-Control": "no-cache",
+    "Expires": "Thu, 01 Jan 1970 00:00:00 GMT",
+    "Content-Type": "application/json;charset=UTF-8",
+    "Transfer-Encoding": "chunked",
+    "Date": "Wed, 11 Nov 2020 03:38:45 GMT"
+}
+cookies  : {}
+encoding : UTF-8
+content_type : application/json;charset=UTF-8
+body     : {
+    "login": "success"
+}
+
+2020-11-11 11:40:29.884 | INFO     | httprunner.client:request:218 - status_code: 200, response_time(ms): 30.0 ms, response_length: 0 bytes
+2020-11-11 11:40:29.887 | INFO     | httprunner.response:validate:246 - assert body.login equal success(str)	==> pass
+2020-11-11 11:40:29.889 | INFO     | httprunner.runner:__run_step:304 - run step end: 用户名密码正确，登录成功 <<<<<<
+
+2020-11-11 11:40:29.892 | INFO     | httprunner.runner:__run_step:292 - run step begin: 密码输入错误，登录失败 >>>>>>
+2020-11-11 11:40:29.907 | DEBUG    | httprunner.client:request:186 - client IP: 127.0.0.1, Port: 56440
+2020-11-11 11:40:29.909 | DEBUG    | httprunner.client:request:194 - server IP: 127.0.0.1, Port: 8889
+2020-11-11 11:40:29.911 | DEBUG    | httprunner.client:log_print:40 - 
+================== request details ==================
+method   : POST
+url      : http://192.168.1.15:8080/sso/userPassword
+headers  : {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0",
+    "Accept-Encoding": "gzip, deflate",
+    "Accept": "*/*",
+    "Connection": "keep-alive",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "HRUN-Request-ID": "HRUN-a1d0a206-fa3b-43b5-bee5-7d9c97b94190-029894",
+    "Content-Length": "25"
+}
+cookies  : {}
+body     : user=jizhen1&password=111
+
+2020-11-11 11:40:29.914 | DEBUG    | httprunner.client:log_print:40 - 
+================== response details ==================
+status_code : 200
+headers  : {
+    "Server": "Apache-Coyote/1.1",
+    "Pragma": "no-cache",
+    "Cache-Control": "no-cache",
+    "Expires": "Thu, 01 Jan 1970 00:00:00 GMT",
+    "Content-Type": "application/json;charset=UTF-8",
+    "Transfer-Encoding": "chunked",
+    "Date": "Wed, 11 Nov 2020 03:38:45 GMT"
+}
+cookies  : {}
+encoding : UTF-8
+content_type : application/json;charset=UTF-8
+body     : {
+    "login": "fail"
+}
+
+2020-11-11 11:40:29.916 | INFO     | httprunner.client:request:218 - status_code: 200, response_time(ms): 13.0 ms, response_length: 0 bytes
+2020-11-11 11:40:29.918 | INFO     | httprunner.response:validate:246 - assert body.login equal fail(str)	==> pass
+2020-11-11 11:40:29.921 | INFO     | httprunner.runner:__run_step:304 - run step end: 密码输入错误，登录失败 <<<<<<
+
+2020-11-11 11:40:29.924 | INFO     | httprunner.runner:__run_step:292 - run step begin: 密码输入为空，登录失败 >>>>>>
+2020-11-11 11:40:29.951 | DEBUG    | httprunner.client:request:186 - client IP: 127.0.0.1, Port: 56440
+2020-11-11 11:40:29.954 | DEBUG    | httprunner.client:request:194 - server IP: 127.0.0.1, Port: 8889
+2020-11-11 11:40:29.956 | DEBUG    | httprunner.client:log_print:40 - 
+================== request details ==================
+method   : POST
+url      : http://192.168.1.15:8080/sso/userPassword
+headers  : {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0",
+    "Accept-Encoding": "gzip, deflate",
+    "Accept": "*/*",
+    "Connection": "keep-alive",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "HRUN-Request-ID": "HRUN-a1d0a206-fa3b-43b5-bee5-7d9c97b94190-029926",
+    "Content-Length": "12"
+}
+cookies  : {}
+body     : user=jizhen1
+
+2020-11-11 11:40:29.960 | DEBUG    | httprunner.client:log_print:40 - 
+================== response details ==================
+status_code : 200
+headers  : {
+    "Server": "Apache-Coyote/1.1",
+    "Pragma": "no-cache",
+    "Cache-Control": "no-cache",
+    "Expires": "Thu, 01 Jan 1970 00:00:00 GMT",
+    "Content-Type": "application/json;charset=UTF-8",
+    "Transfer-Encoding": "chunked",
+    "Date": "Wed, 11 Nov 2020 03:38:45 GMT"
+}
+cookies  : {}
+encoding : UTF-8
+content_type : application/json;charset=UTF-8
+body     : {
+    "login": "fail"
+}
+
+2020-11-11 11:40:29.963 | INFO     | httprunner.client:request:218 - status_code: 200, response_time(ms): 24.0 ms, response_length: 0 bytes
+2020-11-11 11:40:29.965 | INFO     | httprunner.response:validate:246 - assert body.login equal fail(str)	==> pass
+2020-11-11 11:40:29.967 | INFO     | httprunner.runner:__run_step:304 - run step end: 密码输入为空，登录失败 <<<<<<
+
+2020-11-11 11:40:29.969 | INFO     | httprunner.runner:__run_step:292 - run step begin: 请求参数不带mac地址，登录成功 >>>>>>
+2020-11-11 11:40:29.984 | DEBUG    | httprunner.client:request:186 - client IP: 127.0.0.1, Port: 56440
+2020-11-11 11:40:29.987 | DEBUG    | httprunner.client:request:194 - server IP: 127.0.0.1, Port: 8889
+2020-11-11 11:40:29.989 | DEBUG    | httprunner.client:log_print:40 - 
+================== request details ==================
+method   : POST
+url      : http://192.168.1.15:8080/sso/userPassword
+headers  : {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0",
+    "Accept-Encoding": "gzip, deflate",
+    "Accept": "*/*",
+    "Connection": "keep-alive",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "HRUN-Request-ID": "HRUN-a1d0a206-fa3b-43b5-bee5-7d9c97b94190-029971",
+    "Content-Length": "28"
+}
+cookies  : {}
+body     : user=jizhen1&password=111111
+
+2020-11-11 11:40:29.992 | DEBUG    | httprunner.client:log_print:40 - 
+================== response details ==================
+status_code : 200
+headers  : {
+    "Server": "Apache-Coyote/1.1",
+    "Pragma": "no-cache",
+    "Cache-Control": "no-cache",
+    "Expires": "Thu, 01 Jan 1970 00:00:00 GMT",
+    "Content-Type": "application/json;charset=UTF-8",
+    "Transfer-Encoding": "chunked",
+    "Date": "Wed, 11 Nov 2020 03:38:45 GMT"
+}
+cookies  : {}
+encoding : UTF-8
+content_type : application/json;charset=UTF-8
+body     : {
+    "login": "success"
+}
+
+2020-11-11 11:40:29.994 | INFO     | httprunner.client:request:218 - status_code: 200, response_time(ms): 13.0 ms, response_length: 0 bytes
+2020-11-11 11:40:29.996 | INFO     | httprunner.response:validate:246 - assert body.login equal success(str)	==> pass
+2020-11-11 11:40:29.999 | INFO     | httprunner.runner:__run_step:304 - run step end: 请求参数不带mac地址，登录成功 <<<<<<
+

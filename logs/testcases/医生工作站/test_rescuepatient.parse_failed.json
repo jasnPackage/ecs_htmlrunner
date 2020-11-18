@@ -1,0 +1,5 @@
+{
+    "testcase":[
+        "testcases/医生工作站/test_rescuepatient.yml"
+    ]
+}
